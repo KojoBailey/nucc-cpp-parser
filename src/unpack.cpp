@@ -59,7 +59,7 @@ void Unpack_XFBIN(std::filesystem::path& xfbin_path) {
                 auto Parse_Binary = [&]<typename T>(T* t) {
                     T binary_data{buffer.data()};
                     std::ofstream output(page_directory / std::format("{:03} - {}.json", chunk_index, chunk.name));
-                    output << binary_data.write_to_json().dump(json_spacing);
+                    output << binary_data.write_to_json("messageInfo_hashlist.json").dump(json_spacing);
                     output.close();
                 };
 
