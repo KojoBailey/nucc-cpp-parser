@@ -1,10 +1,12 @@
 #include <nucc/xfbin.hpp>
 #include <nucc/chunks/binary/asbr.hpp>
+#include <nucc/chunks/binary/eoh.hpp>
 
 #include <regex>
 
 // CONFIGS
-static int json_spacing = 2;
+inline nucc::Game game;
+inline int json_spacing = 2;
 
 // LOGGING
 template<typename... Args> void Log(std::format_string<Args...> fmt, Args&&... args) {

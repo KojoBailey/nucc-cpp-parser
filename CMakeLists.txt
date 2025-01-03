@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(NUCC_Parser_PlusPlus C CXX)
+project(NUCC_Parser++ C CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 

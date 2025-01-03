@@ -7,6 +7,11 @@ void Log(std::string& str) {
 int main(int argc, char* argv[]) {
     std::filesystem::path xfbin_path;
     if (argc > 1) {
+        std::cout << "Game: ";
+        std::string game_input;
+        std::cin >> game_input;
+        game = nucc::string_to_game(game_input);
+
         xfbin_path = argv[1];
         if (xfbin_path.extension() == ".xfbin") {
             Unpack_XFBIN(xfbin_path);
