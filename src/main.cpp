@@ -1,16 +1,9 @@
 #include "main.hpp"
 
-void Log(std::string& str) {
-    std::cout << "> " << str << std::endl;
-}
-
 int main(int argc, char* argv[]) {
     std::filesystem::path xfbin_path;
     if (argc > 1) {
-        std::cout << "Game: ";
-        std::string game_input;
-        std::cin >> game_input;
-        game = nucc::string_to_game(game_input);
+        config.load("settings.json");
 
         xfbin_path = argv[1];
         if (xfbin_path.extension() == ".xfbin") {
@@ -18,13 +11,14 @@ int main(int argc, char* argv[]) {
         } else if (std::filesystem::is_directory(xfbin_path)) {
             Repack_XFBIN(xfbin_path);
         } else {
-            Log("Input must either be:");
-            Log("\tAn XFBIN with file extension `.xfbin`.");
-            Log("\tA directory containing an unpacked XFBIN from this tool.");
+            logger.send(Logger::Level::FATAL, "Invalid input file.");
+            logger.send(Logger::Level::INFO, "Input must either be:");
+            logger.send(Logger::Level::INFO, "- An XFBIN with file extension `.xfbin`.");
+            logger.send(Logger::Level::INFO, "- A directory containing an unpacked XFBIN from this tool.");
             return 0;
         }
     } else {
-        Log("Drag an XFBIN file or directory onto this executable to get started!");
+        logger.send(Logger::Level::INFO, "Drag an XFBIN file or directory onto this executable to get started!");
         return 0;
     }
 }

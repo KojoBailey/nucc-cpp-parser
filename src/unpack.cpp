@@ -1,6 +1,11 @@
 #include "main.hpp"
 
 void Unpack_XFBIN(std::filesystem::path& xfbin_path) {
+    if (config.game == nucc::Game::UNKNOWN)
+        logger.send(Logger::Level::INFO, "Unpacking `{}` from no particular game...", xfbin_path.filename().string());
+    else
+        logger.send(Logger::Level::INFO, "Unpacking `{}` from {}...", xfbin_path.filename().string(), nucc::game_to_string(config.game));
+
     // Load XFBIN into class.
     nucc::XFBIN xfbin{xfbin_path};
 
@@ -71,36 +76,59 @@ void Unpack_XFBIN(std::filesystem::path& xfbin_path) {
                 auto Parse_Binary = [&]<typename T>(T* t) {
                     T binary_data{buffer.data()};
                     std::ofstream output(page_directory / std::format("{:03} - {}.json", chunk_index, chunk.name));
-                    output << binary_data.write_to_json().dump(json_spacing);
+                    output << binary_data.write_to_json().dump(config.json_spacing);
                     output.close();
                 };
 
-                if (game == nucc::Game::ASBR) {
-                    if (chunk.name == "messageInfo") {
-                        nucc::ASBR::messageInfo messageInfo{buffer.data(), (size_t)-1, chunk.path.substr(6, 3)};
-                        std::ofstream output(page_directory / std::format("{:03} - {}.json", chunk_index, chunk.name));
-                        output << messageInfo.write_to_json("./messageInfo_hashlist.bin").dump(json_spacing);
-                        output.close();
-                    } else if (chunk.name == "PlayerColorParam") {
-                        Parse_Binary((nucc::ASBR::PlayerColorParam*)nullptr);
-                    } else if (chunk.name == "SpeakingLineParam") {
-                        Parse_Binary((nucc::ASBR::SpeakingLineParam*)nullptr);
-                    } else if (chunk.name == "MainModeParam") {
-                        Parse_Binary((nucc::ASBR::MainModeParam*)nullptr);
-                    } else {
+                switch (config.game) {
+                    case nucc::Game::ASBR:
+                        if (chunk.name == "messageInfo") {
+                            nucc::ASBR::messageInfo messageInfo{buffer.data(), (size_t)-1, chunk.path.substr(6, 3)};
+                            std::ofstream output(page_directory / std::format("{:03} - {}.json", chunk_index, chunk.name));
+                            output << messageInfo.write_to_json("./messageInfo_hashlist.bin").dump(config.json_spacing);
+                            output.close();
+                        } else if (chunk.name == "PlayerColorParam") {
+                            Parse_Binary((nucc::ASBR::PlayerColorParam*)nullptr);
+                        } else if (chunk.name == "SpeakingLineParam") {
+                            Parse_Binary((nucc::ASBR::SpeakingLineParam*)nullptr);
+                        } else if (chunk.name == "MainModeParam") {
+                            Parse_Binary((nucc::ASBR::MainModeParam*)nullptr);
+                        } else {
+                            buffer.dump().dump_file((page_directory / std::format("{:03} - {}.binary", chunk_index, chunk.name)).string());
+                        }
+                        break;
+                    case nucc::Game::EOHPS4:
+                        if (chunk.name == "messageInfo") {
+                            nucc::EOHPS4::messageInfo messageInfo{buffer.data(), (size_t)-1, chunk.path.substr(4, 3)};
+                            std::ofstream output(page_directory / std::format("{:03} - {}.json", chunk_index, chunk.name));
+                            output << messageInfo.write_to_json("./messageInfo_hashlist.bin").dump(config.json_spacing);
+                            output.close();
+                        } else {
+                            buffer.dump().dump_file((page_directory / std::format("{:03} - {}.binary", chunk_index, chunk.name)).string());
+                        }
+                        break;
+                    case nucc::Game::EOHPS3:
+                        if (chunk.name == "messageInfo_common" || chunk.name == "messageInfo_adv" || chunk.name == "messageInfo_btl") {
+                            nucc::EOHPS3::messageInfo messageInfo{buffer.data(), (size_t)-1};
+                            std::ofstream output(page_directory / std::format("{:03} - {}.json", chunk_index, chunk.name));
+                            output << messageInfo.write_to_json("./messageInfo_hashlist.bin").dump(config.json_spacing);
+                            output.close();
+                        } else {
+                            buffer.dump().dump_file((page_directory / std::format("{:03} - {}.binary", chunk_index, chunk.name)).string());
+                        }
+                        break;
+                    case nucc::Game::ASB:
+                        if (chunk.name == "messageInfo") {
+                            nucc::ASB::messageInfo messageInfo{buffer.data(), (size_t)-1, chunk.path.substr(5, 3)};
+                            std::ofstream output(page_directory / std::format("{:03} - {}.json", chunk_index, chunk.name));
+                            output << messageInfo.write_to_json("./messageInfo_hashlist.bin").dump(config.json_spacing);
+                            output.close();
+                        } else {
+                            buffer.dump().dump_file((page_directory / std::format("{:03} - {}.binary", chunk_index, chunk.name)).string());
+                        }
+                        break;
+                    default:    
                         buffer.dump().dump_file((page_directory / std::format("{:03} - {}.binary", chunk_index, chunk.name)).string());
-                    }
-                } else if (game == nucc::Game::EOH) {
-                    if (chunk.name == "messageInfo") {
-                        nucc::EOH::messageInfo messageInfo{buffer.data(), (size_t)-1, chunk.path.substr(4, 3)};
-                        std::ofstream output(page_directory / std::format("{:03} - {}.json", chunk_index, chunk.name));
-                        output << messageInfo.write_to_json("./messageInfo_hashlist.bin").dump(json_spacing);
-                        output.close();
-                    } else {
-                        buffer.dump().dump_file((page_directory / std::format("{:03} - {}.binary", chunk_index, chunk.name)).string());
-                    }
-                } else {
-                    buffer.dump().dump_file((page_directory / std::format("{:03} - {}.binary", chunk_index, chunk.name)).string());
                 }
             } else {
                 chunk.dump().dump_file((page_directory / std::format("{:03} - {}.binary", chunk_index, chunk.name)).string());
@@ -109,12 +137,14 @@ void Unpack_XFBIN(std::filesystem::path& xfbin_path) {
         }
         
         std::ofstream page_file(page_directory / "_page.json");
-        page_file << page_json.dump(json_spacing);
+        page_file << page_json.dump(config.json_spacing);
         page_file.close();
         page_count++;
     }
 
     std::ofstream index_file(main_directory / "_index.json");
-    index_file << index_json.dump(json_spacing);
+    index_file << index_json.dump(config.json_spacing);
     index_file.close();
+
+    logger.send(Logger::Level::INFO, "Successfully unpacked XFBIN to directory `{}`.", main_directory.filename().string());
 }

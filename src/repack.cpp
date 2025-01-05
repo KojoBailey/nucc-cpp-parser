@@ -11,8 +11,8 @@ void Repack_XFBIN(std::filesystem::path& xfbin_path) {
     xfbin.game = nucc::string_to_game(index_json["Game"]);
 
     if (xfbin.game != nucc::Game::UNKNOWN)
-        Log("Game detected: {}.", nucc::game_to_string(xfbin.game));
-    Log("Repacking XFBIN `{}`...", xfbin.name);
+        logger.send(Logger::Level::INFO, "Game detected: {}.", nucc::game_to_string(xfbin.game));
+    logger.send(Logger::Level::INFO, "Repacking XFBIN `{}`...", xfbin.name);
 
     // for (std::filesystem::directory_iterator directory : xfbin_path) {
         
