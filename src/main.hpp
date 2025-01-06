@@ -23,7 +23,6 @@ public:
 
     void generate(std::filesystem::path path);
     void load(std::filesystem::path path);
-
 private:
     void update(std::filesystem::path path);
 };
@@ -39,6 +38,8 @@ public:
         ERROR,  // Announce a partial, non-fatal error.
         FATAL   // Announce a fatal error, terminating the program.
     };
+
+    void header();
 
     template<typename... Args> void send(Level level, std::format_string<Args...> fmt, Args&&... args) {
         current_level = level;
@@ -60,6 +61,9 @@ public:
         return input;
     }
 
+    std::string file(std::string name);
+    std::string input(std::string name);
+
 private:
     Level current_level;
     std::string level_as_str();
@@ -68,10 +72,14 @@ private:
     #define LOG_FMT "\033[{}m> [{}] {}\033[0m"
 
     template<typename T> void log_ref(T& content) {
-        std::cout << std::format(LOG_FMT, level_as_colour(), level_as_str(), content) << std::endl;
+        std::string output;
+        output = std::regex_replace(content, std::regex("0m"), std::format("{}m", level_as_colour()));
+        std::cout << std::format(LOG_FMT, level_as_colour(), level_as_str(), output) << std::endl;
     }
     template<typename T> void log_lit(T&& content) {
-        std::cout << std::format(LOG_FMT, level_as_colour(), level_as_str(), content) << std::endl;
+        std::string output;
+        output = std::regex_replace(content, std::regex("0m"), std::format("{}m", level_as_colour()));
+        std::cout << std::format(LOG_FMT, level_as_colour(), level_as_str(), output) << std::endl;
     }
 };
 inline Logger logger;
