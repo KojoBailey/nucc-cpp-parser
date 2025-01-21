@@ -4,6 +4,8 @@
 #include <nucc/chunks/binary/eohps3.hpp>
 #include <nucc/chunks/binary/asb.hpp>
 
+#include <array>
+#include <chrono>
 #include <regex>
 
 // UTILS
@@ -32,11 +34,12 @@ inline Config config;
 class Logger {
 public:
     enum class Level {
-        DEBUG,  // Only show in debug builds.
-        INFO,   // Standard log.
-        WARN,   // Make a recommendation or non-crucial alert.
-        ERROR,  // Announce a partial, non-fatal error.
-        FATAL   // Announce a fatal error, terminating the program.
+        DEBUG,      // Only show in debug builds.
+        INFO,       // Standard log.
+        VERBOSE,    // More info than necessary.
+        WARN,       // Make a recommendation or non-crucial alert.
+        ERROR,      // Announce a partial, non-fatal error.
+        FATAL       // Announce a fatal error, terminating the program.
     };
 
     void header();
@@ -64,21 +67,29 @@ public:
     std::string file(std::string name);
     std::string input(std::string name);
 
+    void timer_start(int index);
+    float timer_end(int index);
+
 private:
     Level current_level;
     std::string level_as_str();
     std::string level_as_colour();
 
+    struct Timer {
+        std::chrono::high_resolution_clock::time_point start, end;
+    };
+    std::array<Timer, 2> timers;
+
     #define LOG_FMT "\033[{}m> [{}] {}\033[0m"
 
     template<typename T> void log_ref(T& content) {
         std::string output;
-        output = std::regex_replace(content, std::regex("0m"), std::format("{}m", level_as_colour()));
+        output = std::regex_replace(content, std::regex("\\[0m"), std::format("[{}m", level_as_colour()));
         std::cout << std::format(LOG_FMT, level_as_colour(), level_as_str(), output) << std::endl;
     }
     template<typename T> void log_lit(T&& content) {
         std::string output;
-        output = std::regex_replace(content, std::regex("0m"), std::format("{}m", level_as_colour()));
+        output = std::regex_replace(content, std::regex("\\[0m"), std::format("[{}m", level_as_colour()));
         std::cout << std::format(LOG_FMT, level_as_colour(), level_as_str(), output) << std::endl;
     }
 };

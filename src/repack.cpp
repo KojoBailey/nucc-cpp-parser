@@ -32,5 +32,20 @@ void Repack_XFBIN(std::filesystem::path& xfbin_path) {
         std::ifstream page_file(directory.path() / "_page.json");
         nlohmann::json page_json = nlohmann::json::parse(page_file);
         page_file.close();
+
+        for (const auto& file : std::filesystem::directory_iterator(directory)) {
+            std::string filename = file.path().filename().string();
+            if (filename == "_page.json") continue;
+
+            if (std::regex_match(filename, std::regex(R"(\d{3} Null)"))) {
+                logger.send(Logger::Level::DEBUG, "File found with type nuccChunkNull.");
+                continue;
+            }
+
+            std::regex regex(R"(\d{3}\s(.+?)\s-\s(.+))");
+            std::smatch matches;
+            std::regex_search(filename, matches, regex);
+            logger.send(Logger::Level::DEBUG, "File {} found with type nuccChunk{}.", logger.file(matches[2].str()), matches[1].str());
+        }
     }
 }

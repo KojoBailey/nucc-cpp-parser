@@ -1,6 +1,7 @@
 #include "main.hpp"
 
 void Unpack_XFBIN(std::filesystem::path& xfbin_path) {
+    logger.timer_start(0);
     if (config.game == nucc::Game::UNKNOWN)
         logger.send(Logger::Level::INFO, "Unpacking {} from no particular game...", logger.file(xfbin_path.filename().string()));
     else
@@ -15,6 +16,8 @@ void Unpack_XFBIN(std::filesystem::path& xfbin_path) {
     std::filesystem::create_directory(main_directory);
     
     // Write `_index.json` information.
+    logger.send(Logger::Level::VERBOSE, "Writing {}...", logger.file("_index.json"));
+    logger.timer_start(1);
     nlohmann::ordered_json index_json;
     index_json["External_Name"] = xfbin.name;
     index_json["Version"] = xfbin.version;
@@ -28,6 +31,7 @@ void Unpack_XFBIN(std::filesystem::path& xfbin_path) {
     for (auto& name : xfbin.index.names) {
         index_json["Names"].push_back(name);
     }
+    logger.send(Logger::Level::VERBOSE, "Writing complete! ({}ms)", logger.timer_end(1));
 
     // For each XFBIN page, create a separate directory.
     size_t page_count = 0;
@@ -69,27 +73,35 @@ void Unpack_XFBIN(std::filesystem::path& xfbin_path) {
             index_json["Pages"][page_count][chunk_index] = page_json["Chunks"][chunk_index];
 
             // Create a file for each chunk.
+            std::string filename_fmt = std::format("{:03} {} - {}{}", chunk_index, chunk.type_as_string().substr(9), "{}", "{}");
             if (chunk.type == nucc::Chunk_Type::Null) {
-                std::ofstream output(page_directory / std::format("{:03} - null", chunk_index));
+                std::ofstream output(page_directory / std::format("{:03} Null", chunk_index));
                 output.close();
-            } else if (chunk.type == nucc::Chunk_Type::Binary) {
+                chunk_index++;
+                continue;
+            }
+            logger.send(Logger::Level::VERBOSE, "Converting chunk {}...", logger.file(chunk.name));
+            logger.timer_start(1);
+            if (chunk.type == nucc::Chunk_Type::Binary) {
                 nucc::Binary buffer{&chunk};
                 auto Parse_Binary = [&]<typename T>(T* t) {
                     T binary_data{buffer.data()};
-                    std::ofstream output(page_directory / std::format("{:03} - {}.json", chunk_index, chunk.name));
+                    std::ofstream output(page_directory / std::vformat(filename_fmt, std::make_format_args(chunk.name, ".json")));
                     output << binary_data.write_to_json().dump(config.json_spacing);
                     output.close();
                 };
 
                 auto Dump_Binary = [&]() {
-                    buffer.dump().dump_file((page_directory / std::format("{:03} - {}.binary", chunk_index, chunk.name)).string());
+                    buffer.dump().dump_file((
+                        page_directory / std::vformat(filename_fmt, std::make_format_args(chunk.name, ".binary"))
+                    ).string());
                 };
 
                 switch (config.game) {
                     case nucc::Game::ASBR:
                         if (chunk.name == "messageInfo") {
                             nucc::ASBR::messageInfo messageInfo{buffer.data(), (size_t)-1, chunk.path.substr(6, 3)};
-                            std::ofstream output(page_directory / std::format("{:03} - {}.json", chunk_index, chunk.name));
+                            std::ofstream output(page_directory / std::vformat(filename_fmt, std::make_format_args(chunk.name, ".json")));
                             output << messageInfo.write_to_json("data/messageInfo_hashlist.bin").dump(config.json_spacing);
                             output.close();
                         } else if (chunk.name == "PlayerColorParam") {
@@ -105,7 +117,7 @@ void Unpack_XFBIN(std::filesystem::path& xfbin_path) {
                     case nucc::Game::EOHPS4:
                         if (chunk.name == "messageInfo") {
                             nucc::EOHPS4::messageInfo messageInfo{buffer.data(), (size_t)-1, chunk.path.substr(4, 3)};
-                            std::ofstream output(page_directory / std::format("{:03} - {}.json", chunk_index, chunk.name));
+                            std::ofstream output(page_directory / std::vformat(filename_fmt, std::make_format_args(chunk.name, ".json")));
                             output << messageInfo.write_to_json("data/messageInfo_hashlist.bin").dump(config.json_spacing);
                             output.close();
                         } else {
@@ -115,7 +127,7 @@ void Unpack_XFBIN(std::filesystem::path& xfbin_path) {
                     case nucc::Game::EOHPS3:
                         if (chunk.name == "messageInfo_common" || chunk.name == "messageInfo_adv" || chunk.name == "messageInfo_btl") {
                             nucc::EOHPS3::messageInfo messageInfo{buffer.data(), (size_t)-1};
-                            std::ofstream output(page_directory / std::format("{:03} - {}.json", chunk_index, chunk.name));
+                            std::ofstream output(page_directory / std::vformat(filename_fmt, std::make_format_args(chunk.name, ".json")));
                             output << messageInfo.write_to_json("data/messageInfo_hashlist.bin").dump(config.json_spacing);
                             output.close();
                         } else {
@@ -125,7 +137,7 @@ void Unpack_XFBIN(std::filesystem::path& xfbin_path) {
                     case nucc::Game::ASB:
                         if (chunk.name == "messageInfo") {
                             nucc::ASB::messageInfo messageInfo{buffer.data(), (size_t)-1, chunk.path.substr(5, 3)};
-                            std::ofstream output(page_directory / std::format("{:03} - {}.json", chunk_index, chunk.name));
+                            std::ofstream output(page_directory / std::vformat(filename_fmt, std::make_format_args(chunk.name, ".json")));
                             output << messageInfo.write_to_json("data/messageInfo_hashlist.bin").dump(config.json_spacing);
                             output.close();
                         } else {
@@ -136,9 +148,10 @@ void Unpack_XFBIN(std::filesystem::path& xfbin_path) {
                         Dump_Binary();
                 }
             } else {
-                chunk.dump().dump_file((page_directory / std::format("{:03} - {}.binary", chunk_index, chunk.name)).string());
+                chunk.dump().dump_file((page_directory / std::vformat(filename_fmt, std::make_format_args(chunk.name, ".bin"))).string());
             }
             chunk_index++;
+            logger.send(Logger::Level::VERBOSE, "Chunk converted! ({}ms)", logger.timer_end(1));
         }
         
         std::ofstream page_file(page_directory / "_page.json");
@@ -151,5 +164,6 @@ void Unpack_XFBIN(std::filesystem::path& xfbin_path) {
     index_file << index_json.dump(config.json_spacing);
     index_file.close();
 
-    logger.send(Logger::Level::INFO, "Successfully unpacked XFBIN to directory {}.", logger.file(main_directory.filename().string()));
+    logger.send(Logger::Level::INFO, "Successfully unpacked XFBIN to directory {} ({}ms).", 
+        logger.file(main_directory.filename().string()), logger.timer_end(0));
 }
