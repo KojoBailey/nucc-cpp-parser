@@ -11,7 +11,6 @@ int main(int argc, char* argv[]) {
             config.load("settings.json");
             Unpack_XFBIN(xfbin_path);
         } else if (std::filesystem::is_directory(xfbin_path)) {
-            config.load("settings.json");
             Repack_XFBIN(xfbin_path);
         } else {
             logger.send(Logger::Level::FATAL, "Invalid input file.");

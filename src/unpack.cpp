@@ -1,7 +1,7 @@
 #include "main.hpp"
 
 void Unpack_XFBIN(std::filesystem::path& xfbin_path) {
-    logger.timer_start(0);
+    logger.Start_Timer(0);
     if (config.game == nucc::Game::UNKNOWN)
         logger.send(Logger::Level::INFO, "Unpacking {} from no particular game...", logger.file(xfbin_path.filename().string()));
     else
@@ -17,7 +17,7 @@ void Unpack_XFBIN(std::filesystem::path& xfbin_path) {
     
     // Write `_index.json` information.
     logger.send(Logger::Level::VERBOSE, "Writing {}...", logger.file("_index.json"));
-    logger.timer_start(1);
+    logger.Start_Timer(1);
     nlohmann::ordered_json index_json;
     index_json["External_Name"] = xfbin.name;
     index_json["Version"] = xfbin.version;
@@ -81,7 +81,7 @@ void Unpack_XFBIN(std::filesystem::path& xfbin_path) {
                 continue;
             }
             logger.send(Logger::Level::VERBOSE, "Converting chunk {}...", logger.file(chunk.name));
-            logger.timer_start(1);
+            logger.Start_Timer(1);
             if (chunk.type == nucc::Chunk_Type::Binary) {
                 nucc::Binary buffer{&chunk};
                 auto Parse_Binary = [&]<typename T>(T* t) {

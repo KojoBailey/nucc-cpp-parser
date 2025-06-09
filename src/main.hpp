@@ -67,7 +67,7 @@ public:
     std::string file(std::string name);
     std::string input(std::string name);
 
-    void timer_start(int index);
+    void Start_Timer(int index);
     float timer_end(int index);
 
 private:

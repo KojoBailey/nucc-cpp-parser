@@ -14,11 +14,15 @@ void Repack_XFBIN(std::filesystem::path& xfbin_path) {
     index_file.close();
     xfbin.version = index_json["Version"];
     xfbin.game = nucc::string_to_game(index_json["Game"]);
+    if (xfbin.game != nucc::Game::UNKNOWN)
+        logger.send(Logger::Level::INFO, "Game detected: {}.", nucc::game_to_string(xfbin.game));
 
-    if (xfbin.game == nucc::Game::UNKNOWN) {
+    config.game = xfbin.game;
+    config.load("settings.json");
+
+    if (config.game == nucc::Game::UNKNOWN) {
         logger.send(Logger::Level::INFO, "Repacking {} for no particular game...", logger.file(xfbin.name));
     } else {
-        logger.send(Logger::Level::INFO, "Game detected: {}.", nucc::game_to_string(xfbin.game));
         logger.send(Logger::Level::INFO, "Repacking {} for {}...", logger.file(xfbin.name), nucc::game_to_string(xfbin.game));
     }
 
@@ -33,19 +37,35 @@ void Repack_XFBIN(std::filesystem::path& xfbin_path) {
         nlohmann::json page_json = nlohmann::json::parse(page_file);
         page_file.close();
 
+        auto page = xfbin.create_page();
+
         for (const auto& file : std::filesystem::directory_iterator(directory)) {
             std::string filename = file.path().filename().string();
             if (filename == "_page.json") continue;
 
             if (std::regex_match(filename, std::regex(R"(\d{3} Null)"))) {
-                logger.send(Logger::Level::DEBUG, "File found with type nuccChunkNull.");
+                logger.send(Logger::Level::VERBOSE, "File found with type nuccChunkNull.");
+                page->create_chunk(nucc::Chunk_Type::Null);
                 continue;
             }
 
             std::regex regex(R"(\d{3}\s(.+?)\s-\s(.+))");
             std::smatch matches;
             std::regex_search(filename, matches, regex);
-            logger.send(Logger::Level::DEBUG, "File {} found with type nuccChunk{}.", logger.file(matches[2].str()), matches[1].str());
+            auto chunk = page->create_chunk(nucc::string_to_chunk_type("nuccChunk" + matches[1].str()), "", logger.file(matches[2].str()));
+            logger.send(Logger::Level::VERBOSE, "File {} found with type {}.", chunk->name, chunk->type_as_string());
+
+            nucc::ASBR::messageInfo messageInfo;
+            std::ifstream messageInfo_file(file.path());
+            nlohmann::ordered_json messageInfo_json = nlohmann::ordered_json::parse(messageInfo_file);
+            messageInfo.load(messageInfo_json);
+            nucc::Binary binary_chunk;
+            binary_chunk.load_data(messageInfo);
+            binary_chunk.name = "messageInfo";
+            binary_chunk.path = "WIN64/eng/230/messageInfo.bin";
+            chunk->load(&binary_chunk);
         }
     }
+
+    xfbin.write("test_output.xfbin");
 }

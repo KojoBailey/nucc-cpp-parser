@@ -54,7 +54,7 @@ std::string Logger::input(std::string name) {
     return std::format("'\033[1;35m{}\033[0m'", name);
 }
 
-void Logger::timer_start(int index) {
+void Logger::Start_Timer(int index) {
     timers[index].start = std::chrono::high_resolution_clock::now();
 }
 float Logger::timer_end(int index) {

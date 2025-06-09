@@ -21,7 +21,8 @@ void Config::load(std::filesystem::path path) {
     json = nlohmann::ordered_json::parse(file);
     file.close();
 
-    game = nucc::string_to_game(json["Default_Game"]);
+    if (game == nucc::Game::UNKNOWN)
+        game = nucc::string_to_game(json["Default_Game"]);
     if (game == nucc::Game::UNKNOWN) {
         logger.send(Logger::Level::ERROR, "No recognisable game has been specified.");
         while (true) {
