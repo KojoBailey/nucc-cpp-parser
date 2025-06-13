@@ -1,6 +1,6 @@
 #include "main.hpp"
 
-void Repack_XFBIN(std::filesystem::path& xfbin_path) {
+void repack_xfbin(const std::filesystem::path& xfbin_path) {
     nucc::XFBIN xfbin;
     xfbin.name = xfbin_path.filename().string();
 

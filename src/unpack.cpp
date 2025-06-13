@@ -1,37 +1,25 @@
 #include "main.hpp"
 
-void Unpack_XFBIN(std::filesystem::path& xfbin_path) {
-    logger.Start_Timer(0);
-    if (config.game == nucc::Game::UNKNOWN)
-        logger.send(Logger::Level::INFO, "Unpacking {} from no particular game...", logger.file(xfbin_path.filename().string()));
-    else
-        logger.send(Logger::Level::INFO, "Unpacking {} from {}...", logger.file(xfbin_path.filename().string()), nucc::game_to_string(config.game));
+XFBIN_Unpacker::XFBIN_Unpacker(const std::filesystem::path& _xfbin_path) {
+    xfbin_path = _xfbin_path;
+    xfbin.load(xfbin_path);
+}
 
-    // Load XFBIN into class.
-    nucc::XFBIN xfbin{xfbin_path};
+void XFBIN_Unpacker::unpack() {
+    if (config.game == nucc::Game::UNKNOWN) {
+        logger.info("Unpacking {} from no particular game...",
+            logger.file(xfbin_path.filename().string())
+        );
+    } else {
+        logger.info("Unpacking {} from {}...",
+            logger.file(xfbin_path.filename().string()),
+            nucc::game_to_string(config.game)
+        );
+    }
     xfbin.game = config.game;
 
-    // Create directory for XFBIN unpacked contents.
-    std::filesystem::path main_directory = xfbin.name;
-    std::filesystem::create_directory(main_directory);
-    
-    // Write `_index.json` information.
-    logger.send(Logger::Level::VERBOSE, "Writing {}...", logger.file("_index.json"));
-    logger.Start_Timer(1);
-    nlohmann::ordered_json index_json;
-    index_json["External_Name"] = xfbin.name;
-    index_json["Version"] = xfbin.version;
-    index_json["Game"] = nucc::game_to_string(xfbin.game);
-    for (auto& type : xfbin.index.types) {
-        index_json["Types"].push_back(type);
-    }
-    for (auto& path : xfbin.index.paths) {
-        index_json["Paths"].push_back(path);
-    }
-    for (auto& name : xfbin.index.names) {
-        index_json["Names"].push_back(name);
-    }
-    logger.send(Logger::Level::VERBOSE, "Writing complete! ({}ms)", logger.timer_end(1));
+    create_directory();
+    write_index_json();
 
     // For each XFBIN page, create a separate directory.
     size_t page_count = 0;
@@ -51,7 +39,7 @@ void Unpack_XFBIN(std::filesystem::path& xfbin_path) {
         for (auto& chunk : page.chunks) {
             if (chunk.type != nucc::Chunk_Type::Null) {
                 page_path = std::format("{:03} - {} ({})", page_count, chunk.name, chunk.type_as_string());
-                page_directory = main_directory / page_path;
+                page_directory = unpacked_directory_path / page_path;
                 std::filesystem::create_directory(page_directory);
                 break;
             }
@@ -81,7 +69,7 @@ void Unpack_XFBIN(std::filesystem::path& xfbin_path) {
                 continue;
             }
             logger.send(Logger::Level::VERBOSE, "Converting chunk {}...", logger.file(chunk.name));
-            logger.Start_Timer(1);
+            logger.start_timer(1);
             if (chunk.type == nucc::Chunk_Type::Binary) {
                 nucc::Binary buffer{&chunk};
                 auto Parse_Binary = [&]<typename T>(T* t) {
@@ -151,7 +139,7 @@ void Unpack_XFBIN(std::filesystem::path& xfbin_path) {
                 chunk.dump().dump_file((page_directory / std::vformat(filename_fmt, std::make_format_args(chunk.name, ".bin"))).string());
             }
             chunk_index++;
-            logger.send(Logger::Level::VERBOSE, "Chunk converted! ({}ms)", logger.timer_end(1));
+            logger.send(Logger::Level::VERBOSE, "Chunk converted! ({}ms)", logger.end_timer(1));
         }
         
         std::ofstream page_file(page_directory / "_page.json");
@@ -160,10 +148,38 @@ void Unpack_XFBIN(std::filesystem::path& xfbin_path) {
         page_count++;
     }
 
-    std::ofstream index_file(main_directory / "_index.json");
+    std::ofstream index_file(unpacked_directory_path / "_index.json");
     index_file << index_json.dump(config.json_spacing);
     index_file.close();
 
     logger.send(Logger::Level::INFO, "Successfully unpacked XFBIN to directory {} ({}ms).", 
-        logger.file(main_directory.filename().string()), logger.timer_end(0));
+        logger.file(unpacked_directory_path.filename().string()), logger.end_timer(0));
+}
+
+void XFBIN_Unpacker::create_directory() {
+    unpacked_directory_path = xfbin.name;
+    if (!std::filesystem::create_directory(unpacked_directory_path)) {
+        logger.error("Failed to create directory {}",
+            unpacked_directory_path.string()
+        );
+        return;
+    }
+}
+
+void XFBIN_Unpacker::write_index_json() {
+    logger.send(Logger::Level::VERBOSE, "Writing {}...", logger.file("_index.json"));
+    logger.start_timer(1);
+    index_json["External_Name"] = xfbin.name;
+    index_json["Version"] = xfbin.version;
+    index_json["Game"] = nucc::game_to_string(xfbin.game);
+    for (auto& type : xfbin.index.types) {
+        index_json["Types"].push_back(type);
+    }
+    for (auto& path : xfbin.index.paths) {
+        index_json["Paths"].push_back(path);
+    }
+    for (auto& name : xfbin.index.names) {
+        index_json["Names"].push_back(name);
+    }
+    logger.send(Logger::Level::VERBOSE, "Writing complete! ({}ms)", logger.end_timer(1));
 }

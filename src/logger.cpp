@@ -1,19 +1,16 @@
 #include "main.hpp"
 
-void Logger::header() {
-    std::string title = "~~~   +NUCC Parser++   ~~~";
-    std::string title_dec = "~~~   +\033[1;35mNUCC Parser++\033[0m   ~~~";
-    std::string version = "[BETA]";
-    std::string subheading = "Developed in C++ by Kojo Bailey for all CyberConnect2 XFBIN files!";
-    std::string subheading_dec = "Developed in \033[1;34mC++\033[0m by \033[1;31mKojo Bailey\033[0m "
+void Logger::print_header() {
+    constexpr std::string_view title = "~~~   +NUCC Parser++   ~~~";
+    constexpr std::string_view title_dec = "~~~   +\033[1;35mNUCC Parser++\033[0m   ~~~";
+    constexpr std::string_view version = "[BETA]";
+    constexpr std::string_view subheading = "Developed in C++ by Kojo Bailey for all CyberConnect2 XFBIN files!";
+    constexpr std::string_view subheading_dec = "Developed in \033[1;34mC++\033[0m by \033[1;31mKojo Bailey\033[0m "
         "for all \033[0;32mCyberConnect2\033[0m \033[1;33mXFBIN\033[0m files!";
 
-    auto padding = [&](std::string target) {
-        std::string buffer;
-        for (int i = 0; i < (subheading.size() - target.size()) / 2; i++) {
-            buffer += " ";
-        }
-        return buffer;
+    constexpr size_t subheading_length = subheading.size();
+    auto padding = [&](std::string_view target) {
+        return std::string((subheading_length - target.size()) / 2, ' ');
     };
 
     std::cout
@@ -47,17 +44,17 @@ std::string Logger::level_as_colour() {
     return "UNKNOWN";
 }
 
-std::string Logger::file(std::string name) {
+std::string Logger::file(std::string_view name) {
     return std::format("`\033[1;32m{}\033[0m`", name);
 }
-std::string Logger::input(std::string name) {
+std::string Logger::input(std::string_view name) {
     return std::format("'\033[1;35m{}\033[0m'", name);
 }
 
-void Logger::Start_Timer(int index) {
+void Logger::start_timer(int index) {
     timers[index].start = std::chrono::high_resolution_clock::now();
 }
-float Logger::timer_end(int index) {
+float Logger::end_timer(int index) {
     timers[index].end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<float> delta = timers[index].end - timers[index].start;
     return std::chrono::duration_cast<std::chrono::milliseconds>(delta).count();
