@@ -124,8 +124,11 @@ public:
     void unpack();
 
 private:
-    void create_directory();
+    void create_main_directory();
     void write_index_json();
+    void create_page_directory(const nucc::Page& page, const size_t page_index);
+    void process_chunk(nucc::Chunk& chunk, 
+        nlohmann::ordered_json& page_json, const size_t page_index, const std::filesystem::path& page_directory);
 
     nucc::XFBIN xfbin;
     std::filesystem::path xfbin_path;
