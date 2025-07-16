@@ -1,36 +1,8 @@
-#include <nucc/xfbin.hpp>
-#include <nucc/chunks/binary/asbr.hpp>
-#include <nucc/chunks/binary/eohps4.hpp>
-#include <nucc/chunks/binary/eohps3.hpp>
-#include <nucc/chunks/binary/asb.hpp>
-
-#include <array>
 #include <chrono>
+#include <iostream>
+#include <format>
 #include <regex>
 
-// UTILS
-inline std::string str_lowercase(std::string str) {
-    std::transform(str.begin(), str.end(), str.begin(),
-    [](unsigned char c){ return std::tolower(c); });
-    return str;
-}
-
-// CONFIGS
-class Config {
-public:
-    nlohmann::ordered_json json;
-    
-    nucc::Game game{nucc::Game::UNKNOWN};
-    int json_spacing{2};
-
-    void generate(std::filesystem::path path);
-    void load(std::filesystem::path path);
-private:
-    void update(std::filesystem::path path);
-};
-inline Config config;
-
-// LOGGING
 class Logger {
 public:
     enum class Level {
@@ -113,28 +85,3 @@ private:
     }
 };
 inline Logger logger;
-
-// UNPACKER
-class XFBIN_Unpacker {
-public:
-    explicit XFBIN_Unpacker(const std::filesystem::path& _xfbin_path);
-    XFBIN_Unpacker(const XFBIN_Unpacker& copy) = delete;
-    XFBIN_Unpacker& operator=(const XFBIN_Unpacker& copy) = delete;
-
-    void unpack();
-
-private:
-    void create_main_directory();
-    void write_index_json();
-    void create_page_directory(const nucc::Page& page, const size_t page_index);
-    void process_chunk(nucc::Chunk& chunk, 
-        nlohmann::ordered_json& page_json, const size_t page_index, const std::filesystem::path& page_directory);
-
-    nucc::XFBIN xfbin;
-    std::filesystem::path xfbin_path;
-    std::filesystem::path unpacked_directory_path;
-    nlohmann::ordered_json index_json;
-};
-
-// REPACKER
-void repack_xfbin(const std::filesystem::path& xfbin_path);

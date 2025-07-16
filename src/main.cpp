@@ -1,4 +1,7 @@
-#include "main.hpp"
+#include "logger.hpp"
+#include "config.hpp"
+#include "unpacker.hpp"
+#include "repacker.hpp"
 
 constexpr std::string_view XFBIN_EXTENSION = ".xfbin";
 constexpr std::string_view SETTINGS_PATH = "settings.json";

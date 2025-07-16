@@ -1,4 +1,13 @@
-#include "main.hpp"
+#include "config.hpp"
+#include "logger.hpp"
+
+#include <fstream>
+
+std::string str_lowercase(std::string str) {
+    std::transform(str.begin(), str.end(), str.begin(),
+    [](unsigned char c){ return std::tolower(c); });
+    return str;
+}
 
 void Config::generate(std::filesystem::path path) {
     logger.send(Logger::Level::ERROR, "File {} not found. Generating new settings...", logger.file("settings.json"));

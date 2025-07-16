@@ -1,4 +1,4 @@
-#include "main.hpp"
+#include "logger.hpp"
 
 void Logger::print_header() {
     constexpr std::string_view title = "~~~   +NUCC Parser++   ~~~";
