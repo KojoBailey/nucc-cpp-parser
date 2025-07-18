@@ -16,9 +16,12 @@ public:
         struct Chunk {
             const nucc::Chunk& data;
             size_t index;
+            nlohmann::ordered_json json;
 
             Chunk(const nucc::Chunk& _data, size_t _index)
             : data(_data), index(_index) {}
+
+            void write_json();
         };
 
         Page(XFBIN_Unpacker* _xfbin_unpacker, const nucc::Page& _data, size_t _index)

@@ -114,17 +114,9 @@ void XFBIN_Unpacker::Page::write_file() {
 }
 
 void XFBIN_Unpacker::Page::process_chunk(Chunk chunk) {
-    // Write each chunk's data to `_page.json`.
-    auto& page_json_chunk = json["Chunks"][chunk.index];
-    page_json_chunk["Type"] = chunk.data.type_string();
-    if (chunk.data.path() != "")
-        page_json_chunk["Path"] = chunk.data.path();
-    if (chunk.data.name() != "")
-        page_json_chunk["Name"] = chunk.data.name();
-    page_json_chunk["Version"] = chunk.data.version();
-
-    // Update `_index.json` to have total page count.
-    xfbin_unpacker->index_json["Pages"][index][chunk.index] = json["Chunks"][chunk.index];
+    chunk.write_json();
+    json["Chunks"][chunk.index] = chunk.json;
+    xfbin_unpacker->index_json["Pages"][index][chunk.index] = chunk.json;
 
     // Create a file for each chunk.
     std::string filename_fmt = std::format("{:03} {} - {}{}", chunk.index, chunk.data.type_string().substr(9), "{}", "{}");
@@ -204,6 +196,15 @@ void XFBIN_Unpacker::Page::process_chunk(Chunk chunk) {
         chunk.dump().dump_file((page_directory / std::vformat(filename_fmt, std::make_format_args(chunk.name(), ".bin"))).string());
     }
     logger.send(Logger::Level::VERBOSE, "Chunk converted! ({}ms)", logger.end_timer(1));
+}
+
+void XFBIN_Unpacker::Page::Chunk::write_json() {
+    json["Type"] = data.type_string();
+    if (data.path() != "")
+        json["Path"] = data.path();
+    if (data.name() != "")
+        json["Name"] = data.name();
+    json["Version"] = data.version();
 }
 
 void XFBIN_Unpacker::create_index_file() {
