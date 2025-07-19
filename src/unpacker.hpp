@@ -1,4 +1,6 @@
 #include <nucc/xfbin_new.hpp>
+#include <nucc/chunks/binary/binary_data_new.hpp>
+#include <nucc/chunks/binary/json_serializable.hpp>
 
 #include <nlohmann/json.hpp>
 #include <filesystem>
@@ -7,48 +9,64 @@ class XFBIN_Unpacker {
 public:
     struct Page {
         XFBIN_Unpacker* xfbin_unpacker;
-        const nucc::Page& data;
+        const nucc::page& data;
         size_t index;
         std::string name;
         std::filesystem::path path;
         nlohmann::ordered_json json;
 
         struct Chunk {
-            const nucc::Chunk& data;
+            const nucc::chunk& data;
             size_t index;
             nlohmann::ordered_json json;
+            std::string filename_fmt;
 
-            Chunk(const nucc::Chunk& _data, size_t _index)
+            Chunk(const nucc::chunk& _data, size_t _index)
             : data(_data), index(_index) {}
 
-            void write_json();
+            void Write_JSON();
         };
 
-        Page(XFBIN_Unpacker* _xfbin_unpacker, const nucc::Page& _data, size_t _index)
+        Page(XFBIN_Unpacker* _xfbin_unpacker, const nucc::page& _data, size_t _index)
         : xfbin_unpacker(_xfbin_unpacker), data(_data), index(_index) {}
 
-        void write_global_json();
-        void create_directory();
-        void process_chunks();
-        void process_chunk(Chunk chunk);
-        void write_file();
+        void Write_Global_JSON();
+        void Create_Directory();
+        void Process_Chunks();
+        void Process_Chunk(Chunk chunk);
+        void Write_File();
+
+        template<std::derived_from<nucc::binary_data> T>
+        void Parse_Data(Chunk& chunk) {
+            T binary_data;
+            binary_data.read(chunk.data.data());
+            nlohmann::ordered_json json_output = nucc::json_serializer<T>::write(binary_data);
+            std::ofstream output(path / std::format("{}.json", chunk.data.path()));
+            output << json_output.dump(config.json_spacing);
+        }
+
+        void Handle_Chunk_Null(Chunk& chunk);
+        void Handle_Chunk_Binary(Chunk& chunk);
+
+        bool Handle_ASBR(Chunk& chunk);
+        void Dump_Binary(Chunk& chunk);
     };
 
     explicit XFBIN_Unpacker(const std::filesystem::path& _xfbin_path);
     XFBIN_Unpacker(const XFBIN_Unpacker& copy) = delete;
     XFBIN_Unpacker& operator=(const XFBIN_Unpacker& copy) = delete;
 
-    void unpack();
+    void Unpack();
 
 private:
-    void get_game();
-    void create_main_directory();
-    void write_index_json();
-    void create_page_directories();
-    void process_page(Page page);
-    void create_index_file();
+    void Get_Game();
+    void Create_Main_Directory();
+    void Write_Index_JSON();
+    void Create_Page_Directories();
+    void Process_Page(Page page);
+    void Create_Index_File();
 
-    nucc::XFBIN xfbin;
+    nucc::xfbin xfbin;
     std::filesystem::path xfbin_path;
     std::filesystem::path unpacked_directory_path;
     nlohmann::ordered_json index_json;
