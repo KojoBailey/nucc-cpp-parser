@@ -1,3 +1,5 @@
+#pragma once
+
 #include <nucc/game.hpp>
 
 #include <nlohmann/json.hpp>
@@ -7,7 +9,7 @@ class Config {
 public:
     nlohmann::ordered_json json;
     
-    nucc::Game game{nucc::Game::UNKNOWN};
+    nucc::game game{nucc::game::unknown};
     int json_spacing{2};
 
     void generate(std::filesystem::path path);

@@ -30,9 +30,9 @@ void Config::load(std::filesystem::path path) {
     json = nlohmann::ordered_json::parse(file);
     file.close();
 
-    if (game == nucc::Game::UNKNOWN)
+    if (game == nucc::game::unknown)
         game = nucc::string_to_game(json["Default_Game"]);
-    if (game == nucc::Game::UNKNOWN) {
+    if (game == nucc::game::unknown) {
         logger.send(Logger::Level::ERROR, "No recognisable game has been specified.");
         while (true) {
             logger.send(Logger::Level::INFO, "Press {} to continue without a game, or enter the game's initials to set it.", logger.input("Enter"));
@@ -47,7 +47,7 @@ void Config::load(std::filesystem::path path) {
                 logger.input("ASBR"), logger.input("EoHPS4"), logger.input("EoHPS3"), logger.input("ASB"));
             } else if (input == "") {
                 break;
-            } else if (nucc::string_to_game(input) == nucc::Game::UNKNOWN) {
+            } else if (nucc::string_to_game(input) == nucc::game::unknown) {
                 logger.send(Logger::Level::ERROR, "\"{}\" isn't recognised as a game.", input);
             } else {
                 game = nucc::string_to_game(input);

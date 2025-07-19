@@ -1,7 +1,7 @@
 #include "logger.hpp"
 #include "config.hpp"
 #include "unpacker.hpp"
-#include "repacker.hpp"
+// #include "repacker.hpp"
 
 constexpr std::string_view XFBIN_EXTENSION = ".xfbin";
 constexpr std::string_view SETTINGS_PATH = "settings.json";
@@ -26,9 +26,9 @@ int main(int argc, char* argv[]) {
     if (std::filesystem::is_regular_file(xfbin_path) && xfbin_path.extension() == XFBIN_EXTENSION) {
         config.load(SETTINGS_PATH);
         XFBIN_Unpacker unpacker{xfbin_path};
-        unpacker.unpack();
+        unpacker.Unpack();
     } else if (std::filesystem::is_directory(xfbin_path)) {
-        repack_xfbin(xfbin_path);
+        // repack_xfbin(xfbin_path);
     } else {    
         logger.fatal("Invalid input file.");
         logger.info("Input must either be:");

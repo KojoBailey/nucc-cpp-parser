@@ -1,7 +1,10 @@
-#include "main.hpp"
+#include "repacker.hpp"
+
+#include "logger.hpp"
+#include "config.hpp"
 
 void repack_xfbin(const std::filesystem::path& xfbin_path) {
-    nucc::XFBIN xfbin;
+    nucc::xfbin xfbin;
 
     xfbin.filename = xfbin_path.filename().string();
 
