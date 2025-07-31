@@ -27,7 +27,7 @@ void XFBIN_Unpacker::Unpack() {
     log.verbose("Writing \"_index.json\" file...");
     Create_Index_File();
 
-    log.info(std::format("Successfully unpacked XFBIN to directory {}.", unpacked_directory_path.filename().string()));
+    log.info(std::format("Successfully unpacked XFBIN to directory \"{}\".", unpacked_directory_path.filename().string()));
     // log.info(std::format("Successfully unpacked XFBIN to directory {} ({}ms).", 
     //     unpacked_directory_path.filename().string(), logger.end_timer(0));
 }
@@ -43,7 +43,8 @@ void XFBIN_Unpacker::Get_Game() {
 
 void XFBIN_Unpacker::Create_Main_Directory() {
     unpacked_directory_path = xfbin.filename;
-    if (!std::filesystem::create_directory(unpacked_directory_path)) {
+    std::filesystem::create_directory(unpacked_directory_path);
+    if (!std::filesystem::exists(unpacked_directory_path)) {
         log.error(
             kojo::logger::status::null_file,
             std::format("Failed to create directory {}", unpacked_directory_path.string()),
@@ -78,7 +79,7 @@ void XFBIN_Unpacker::Create_Page_Directories() {
 }
 
 void XFBIN_Unpacker::Process_Page(Page page) {
-    
+
     page.Write_Global_JSON();
 
     page.Create_Directory();
