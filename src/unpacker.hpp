@@ -1,8 +1,6 @@
 #include "config.hpp"
 
-#include <nucc/xfbin_new.hpp>
-#include <nucc/chunks/binary/binary_data_new.hpp>
-#include <nucc/chunks/binary/json_serializable.hpp>
+#include <nucc/xfbin.hpp>
 
 #include <nlohmann/json.hpp>
 #include <filesystem>

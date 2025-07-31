@@ -3,8 +3,6 @@
 
 #include <nucc/crc32.hpp>
 
-#include <nucc/chunks/binary/asbr/player_color_param.hpp>
-
 XFBIN_Unpacker::XFBIN_Unpacker(const std::filesystem::path& _xfbin_path) {
     xfbin_path = _xfbin_path;
     xfbin.load(xfbin_path);
@@ -120,10 +118,10 @@ void XFBIN_Unpacker::Page::Handle_Chunk_Null(Chunk& chunk) {
 }
 
 void XFBIN_Unpacker::Page::Handle_Chunk_Binary(Chunk& chunk) {
-    switch (config.game) {
-        case nucc::game::asbr:
-            if (Handle_ASBR(chunk)) return;
-    }
+    // switch (config.game) {
+    //     case nucc::game::asbr:
+    //         if (Handle_ASBR(chunk)) return;
+    // }
     const std::string full_filename = std::format(chunk.filename_fmt, chunk.data.name()) + ".binary";
     chunk.data.storage()->dump_file((path / full_filename).string());
 }
