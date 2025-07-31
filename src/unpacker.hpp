@@ -46,7 +46,7 @@ public:
         void Parse_Data(Chunk& chunk) {
             T binary_data = cc2::binary_serializer<T>::read(chunk.data.data());
             nlohmann::ordered_json json_output = cc2::json_serializer<T>::write(binary_data);
-            std::ofstream output(path / std::format("{} - {}.json", chunk.index, chunk.data.name()));
+            std::ofstream output(path / std::format("{:03} - {}.json", chunk.index, chunk.data.name()));
             output << json_output.dump(config.json_spacing);
         }
 
