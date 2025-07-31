@@ -49,7 +49,8 @@ void XFBIN_Unpacker::Create_Main_Directory() {
 void XFBIN_Unpacker::Write_Index_JSON() {
     log.verbose("Writing \"_index.json\"...");
     // logger.start_timer(1);
-    index_json["External_Name"] = xfbin.filename;
+
+    index_json["Filename"] = xfbin.filename;
     index_json["Version"] = xfbin.version();
     index_json["Game"] = nucc::game_to_string(xfbin.game);
     for (auto& type : xfbin.types()) {
@@ -61,6 +62,7 @@ void XFBIN_Unpacker::Write_Index_JSON() {
     for (auto& name : xfbin.names()) {
         index_json["Names"].push_back(name);
     }
+
     log.verbose("Writing complete!");
     // logger.send(Logger::Level::VERBOSE, "Writing complete! ({}ms)", logger.end_timer(1));
 }
