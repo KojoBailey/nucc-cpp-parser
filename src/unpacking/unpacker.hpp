@@ -1,4 +1,4 @@
-#include "config.hpp"
+#include "../config.hpp"
 
 #include <nucc/xfbin.hpp>
 
