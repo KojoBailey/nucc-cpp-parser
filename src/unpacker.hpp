@@ -2,12 +2,17 @@
 
 #include <nucc/xfbin.hpp>
 
+#include <cc2/binary_serializer.hpp>
+#include <cc2/json_serializer.hpp>
+
 #include <nlohmann/json.hpp>
 #include <filesystem>
 
 class XFBIN_Unpacker {
 public:
     struct Page {
+        kojo::logger log{"Page Unpacker", true, true};
+
         XFBIN_Unpacker* xfbin_unpacker;
         const nucc::page& data;
         size_t index;
@@ -37,14 +42,13 @@ public:
         void Process_Chunk(Chunk chunk);
         void Write_File();
 
-        // template<std::derived_from<nucc::binary_data> T>
-        // void Parse_Data(Chunk& chunk) {
-        //     T binary_data;
-        //     binary_data.read(chunk.data.data());
-        //     nlohmann::ordered_json json_output = nucc::json_serializer<T>::write(binary_data);
-        //     std::ofstream output(path / std::format("{}.json", chunk.data.path()));
-        //     output << json_output.dump(config.json_spacing);
-        // }
+        template<typename T>
+        void Parse_Data(Chunk& chunk) {
+            T binary_data = cc2::binary_serializer<T>::read(chunk.data.data());
+            nlohmann::ordered_json json_output = cc2::json_serializer<T>::write(binary_data);
+            std::ofstream output(path / std::format("{} - {}.json", chunk.index, chunk.data.name()));
+            output << json_output.dump(config.json_spacing);
+        }
 
         void Handle_Chunk_Null(Chunk& chunk);
         void Handle_Chunk_Binary(Chunk& chunk);
@@ -60,7 +64,7 @@ public:
     void Unpack();
 
 private:
-    kojo::logger log{"Unpacker"};
+    kojo::logger log{"XFBIN Unpacker", true, true};
 
     nucc::xfbin xfbin;
     std::filesystem::path xfbin_path;

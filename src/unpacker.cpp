@@ -1,5 +1,10 @@
 #include "unpacker.hpp"
 
+#include <cc2/asbr/binary/player_color_param.hpp>
+#include <cc2/asbr/json/player_color_param.hpp>
+#include <cc2/asbr/binary/message_info.hpp>
+#include <cc2/asbr/json/message_info.hpp>
+
 #include <nucc/utils/crc32.hpp>
 
 XFBIN_Unpacker::XFBIN_Unpacker(const std::filesystem::path& _xfbin_path) {
@@ -127,22 +132,25 @@ void XFBIN_Unpacker::Page::Handle_Chunk_Null(Chunk& chunk) {
 }
 
 void XFBIN_Unpacker::Page::Handle_Chunk_Binary(Chunk& chunk) {
-    // switch (config.game) {
-    //     case nucc::game::asbr:
-    //         if (Handle_ASBR(chunk)) return;
-    // }
+    switch (config.game) {
+        case nucc::game::asbr:
+            if (Handle_ASBR(chunk)) return;
+    }
     const std::string full_filename = chunk.filename + ".bin";
     chunk.data.storage()->dump_file((path / full_filename).string());
 }
 
-// bool XFBIN_Unpacker::Page::Handle_ASBR(Chunk& chunk) {
-//     switch (nucc::crc32::hash(chunk.data.name())) {
-//         case nucc::crc32::hash("PlayerColorParam"):
-//             Parse_Data<nucc::asbr::player_color_param>(chunk);
-//             return true;
-//     }
-//     return false;
-// }
+bool XFBIN_Unpacker::Page::Handle_ASBR(Chunk& chunk) {
+    switch (nucc::crc32::hash(chunk.data.name())) {
+        case nucc::crc32::hash("PlayerColorParam"):
+            Parse_Data<cc2::asbr::player_color_param>(chunk);
+            return true;
+        case nucc::crc32::hash("messageInfo"):
+            Parse_Data<cc2::asbr::message_info>(chunk);
+            return true;
+    }
+    return false;
+}
 
 void XFBIN_Unpacker::Page::Process_Chunk(Chunk chunk) {
     chunk.Write_JSON();
