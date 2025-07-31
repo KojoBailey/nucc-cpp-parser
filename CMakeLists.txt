@@ -3,7 +3,11 @@ project(NUCC_Parser++ C CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 
-file(GLOB SOURCES src/*.cpp)
+file(GLOB SOURCES 
+    src/main.cpp
+    src/config.cpp
+    src/unpacker.cpp
+)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 

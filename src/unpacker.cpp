@@ -1,7 +1,7 @@
 #include "unpacker.hpp"
 #include "logger.hpp"
 
-#include <nucc/crc32.hpp>
+#include <nucc/utils/crc32.hpp>
 
 XFBIN_Unpacker::XFBIN_Unpacker(const std::filesystem::path& _xfbin_path) {
     xfbin_path = _xfbin_path;

@@ -36,14 +36,14 @@ public:
         void Process_Chunk(Chunk chunk);
         void Write_File();
 
-        template<std::derived_from<nucc::binary_data> T>
-        void Parse_Data(Chunk& chunk) {
-            T binary_data;
-            binary_data.read(chunk.data.data());
-            nlohmann::ordered_json json_output = nucc::json_serializer<T>::write(binary_data);
-            std::ofstream output(path / std::format("{}.json", chunk.data.path()));
-            output << json_output.dump(config.json_spacing);
-        }
+        // template<std::derived_from<nucc::binary_data> T>
+        // void Parse_Data(Chunk& chunk) {
+        //     T binary_data;
+        //     binary_data.read(chunk.data.data());
+        //     nlohmann::ordered_json json_output = nucc::json_serializer<T>::write(binary_data);
+        //     std::ofstream output(path / std::format("{}.json", chunk.data.path()));
+        //     output << json_output.dump(config.json_spacing);
+        // }
 
         void Handle_Chunk_Null(Chunk& chunk);
         void Handle_Chunk_Binary(Chunk& chunk);
