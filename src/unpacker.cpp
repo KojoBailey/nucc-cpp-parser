@@ -5,6 +5,8 @@
 XFBIN_Unpacker::XFBIN_Unpacker(const std::filesystem::path& _xfbin_path) {
     xfbin_path = _xfbin_path;
     xfbin.load(xfbin_path);
+    log.show_debug = true;
+    log.show_verbose = true;
 }
 
 void XFBIN_Unpacker::Unpack() {
