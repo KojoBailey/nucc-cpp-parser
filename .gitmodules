@@ -1,6 +1,3 @@
-[submodule "src/external/nucc"]
-	path = src/external/nucc
-	url = https://github.com/KojoBailey/nucc-cpp-library
 [submodule "src/external/cc2_binary_data"]
 	path = src/external/cc2_binary_data
 	url = https://github.com/KojoBailey/cc2-binary-data
