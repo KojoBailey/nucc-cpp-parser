@@ -1,5 +1,4 @@
 #include "config.hpp"
-#include "logger.hpp"
 
 #include <fstream>
 
@@ -10,16 +9,16 @@ std::string str_lowercase(std::string str) {
 }
 
 void Config::generate(std::filesystem::path path) {
-    logger.send(Logger::Level::ERROR, "File {} not found. Generating new settings...", logger.file("settings.json"));
+    log.info("File \"settings.json\" not found. Generating new settings...");
 
     json["Previous_Game"] = "N/A";
     json["Default_Game"] = nucc::game_to_string(game);
-    logger.send(Logger::Level::INFO, "Default Game set to {}.", json["Default_Game"].template get<std::string>());
+    log.info(std::format("Default Game set to {}.", json["Default_Game"].template get<std::string>()));
     json["JSON_Spacing"] = json_spacing;
-    logger.send(Logger::Level::INFO, "JSON Spacing set to {}.", json["JSON_Spacing"].template get<int>());
+    log.info(std::format("JSON Spacing set to {}.", json["JSON_Spacing"].template get<int>()));
 
     update(path);
-    logger.send(Logger::Level::INFO, "New settings generated. You can change these anytime in {}.", logger.file("settings.json"));
+    log.info("New settings generated. You can change these anytime in \"settings.json\".");
 }
 
 void Config::load(std::filesystem::path path) {
@@ -33,29 +32,37 @@ void Config::load(std::filesystem::path path) {
     if (game == nucc::game::unknown)
         game = nucc::string_to_game(json["Default_Game"]);
     if (game == nucc::game::unknown) {
-        logger.send(Logger::Level::ERROR, "No recognisable game has been specified.");
+        log.error(
+            kojo::logger::status::bad_value,
+            "No recognisable game has been specified.",
+            "Ensure the game specified is supported by this parser."
+        );
         while (true) {
-            logger.send(Logger::Level::INFO, "Press {} to continue without a game, or enter the game's initials to set it.", logger.input("Enter"));
-            logger.send(Logger::Level::INFO, "Send {} to see a full list of game options.", logger.input("o"));
-            std::string input = str_lowercase(logger.get_input("Game: "));
-            if (input == "o") {
-                logger.send(Logger::Level::INFO, "Here are the currently supported game options:\n"
-                    "- {}   = JoJo's Bizarre Adventure: All-Star Battle R\n"
-                    "- {} = JoJo's Bizarre Adventure: Eyes of Heaven (PS4)\n"
-                    "- {} = JoJo's Bizarre Adventure: Eyes of Heaven (PS3)\n"
-                    "- {}    = JoJo's Bizarre Adventure: All-Star Battle",
-                logger.input("ASBR"), logger.input("EoHPS4"), logger.input("EoHPS3"), logger.input("ASB"));
+            log.info("Press `Enter` to continue without a game, or enter the game's initials to set it.");
+            log.info("Send \"opt\" to see a full list of game options.");
+            std::string input = str_lowercase(log.get_input("Game: "));
+            if (input == "opt") {
+                log.info("Here are the currently supported game options:\n"
+                    "- ASBR   = JoJo's Bizarre Adventure: All-Star Battle R\n"
+                    "- EoHPS4 = JoJo's Bizarre Adventure: Eyes of Heaven (PS4)\n"
+                    "- EoHPS3 = JoJo's Bizarre Adventure: Eyes of Heaven (PS3)\n"
+                    "- ASB    = JoJo's Bizarre Adventure: All-Star Battle"
+                );
             } else if (input == "") {
                 break;
             } else if (nucc::string_to_game(input) == nucc::game::unknown) {
-                logger.send(Logger::Level::ERROR, "\"{}\" isn't recognised as a game.", input);
+                log.error(
+                    kojo::logger::status::bad_value,
+                    std::format("\"{}\" isn't recognised as a game.", input),
+                    "Enter a game that this parser supports, and check for typos."
+                );
             } else {
                 game = nucc::string_to_game(input);
                 json["Previous_Game"] = nucc::game_to_string(game);
-                logger.send(Logger::Level::INFO, "Save this game as the default for future unpacking? ({}/{})", logger.input("y"), logger.input("n"));
-                if (str_lowercase(logger.get_input(": ")) == "y") {
+                log.info("Save this game as the default for future unpacking? (y/n)");
+                if (str_lowercase(log.get_input(": ")) == "y") {
                     json["Default_Game"] = json["Previous_Game"];
-                    logger.send(Logger::Level::INFO, "Default game set to {}.", json["Default_Game"].template get<std::string>());
+                    log.info(std::format("Default game set to {}.", json["Default_Game"].template get<std::string>()));
                 }
                 break;
             }

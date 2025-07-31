@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "*.bt": "c",
+        "*.json": "jsonc",
         "any": "cpp",
         "array": "cpp",
         "atomic": "cpp",
@@ -74,7 +75,8 @@
         "thread": "cpp",
         "typeinfo": "cpp",
         "valarray": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "source_location": "cpp"
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }

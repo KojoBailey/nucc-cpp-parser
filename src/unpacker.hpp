@@ -19,6 +19,7 @@ public:
             const nucc::chunk& data;
             size_t index;
             nlohmann::ordered_json json;
+            std::string filename;
             std::string filename_fmt;
 
             Chunk(const nucc::chunk& _data, size_t _index)
@@ -59,15 +60,17 @@ public:
     void Unpack();
 
 private:
+    kojo::logger log{"Unpacker"};
+
+    nucc::xfbin xfbin;
+    std::filesystem::path xfbin_path;
+    std::filesystem::path unpacked_directory_path;
+    nlohmann::ordered_json index_json;
+
     void Get_Game();
     void Create_Main_Directory();
     void Write_Index_JSON();
     void Create_Page_Directories();
     void Process_Page(Page page);
     void Create_Index_File();
-
-    nucc::xfbin xfbin;
-    std::filesystem::path xfbin_path;
-    std::filesystem::path unpacked_directory_path;
-    nlohmann::ordered_json index_json;
 };

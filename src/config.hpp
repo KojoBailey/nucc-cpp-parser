@@ -2,6 +2,7 @@
 
 #include <nucc/game.hpp>
 
+#include <kojo/logger.hpp>
 #include <nlohmann/json.hpp>
 #include <filesystem>
 
@@ -15,6 +16,8 @@ public:
     void generate(std::filesystem::path path);
     void load(std::filesystem::path path);
 private:
+    kojo::logger log{"Config"};
+
     void update(std::filesystem::path path);
 };
 inline Config config;
