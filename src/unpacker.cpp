@@ -10,14 +10,21 @@ XFBIN_Unpacker::XFBIN_Unpacker(const std::filesystem::path& _xfbin_path) {
 }
 
 void XFBIN_Unpacker::Unpack() {
+    log.verbose("Getting game information...");
     Get_Game();
 
+    log.verbose("Creating main directory...");
     Create_Main_Directory();
 
+    log.verbose("Writing index JSON data...");
+    // logger.start_timer(1);
     Write_Index_JSON();
+    // logger.send(Logger::Level::VERBOSE, "Writing complete! ({}ms)", logger.end_timer(1));
 
+    log.verbose("Creating page directories...");
     Create_Page_Directories();
 
+    log.verbose("Writing \"_index.json\" file...");
     Create_Index_File();
 
     log.info(std::format("Successfully unpacked XFBIN to directory {}.", unpacked_directory_path.filename().string()));
@@ -47,9 +54,6 @@ void XFBIN_Unpacker::Create_Main_Directory() {
 }
 
 void XFBIN_Unpacker::Write_Index_JSON() {
-    log.verbose("Writing \"_index.json\"...");
-    // logger.start_timer(1);
-
     index_json["Filename"] = xfbin.filename;
     index_json["Version"] = xfbin.version();
     index_json["Game"] = nucc::game_to_string(xfbin.game);
@@ -62,9 +66,6 @@ void XFBIN_Unpacker::Write_Index_JSON() {
     for (auto& name : xfbin.names()) {
         index_json["Names"].push_back(name);
     }
-
-    log.verbose("Writing complete!");
-    // logger.send(Logger::Level::VERBOSE, "Writing complete! ({}ms)", logger.end_timer(1));
 }
 
 void XFBIN_Unpacker::Create_Page_Directories() {
@@ -77,6 +78,7 @@ void XFBIN_Unpacker::Create_Page_Directories() {
 }
 
 void XFBIN_Unpacker::Process_Page(Page page) {
+    
     page.Write_Global_JSON();
 
     page.Create_Directory();
