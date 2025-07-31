@@ -131,7 +131,7 @@ void XFBIN_Unpacker::Page::Handle_Chunk_Binary(Chunk& chunk) {
     //     case nucc::game::asbr:
     //         if (Handle_ASBR(chunk)) return;
     // }
-    const std::string full_filename = chunk.filename + ".binary";
+    const std::string full_filename = chunk.filename + ".bin";
     chunk.data.storage()->dump_file((path / full_filename).string());
 }
 
@@ -150,7 +150,7 @@ void XFBIN_Unpacker::Page::Process_Chunk(Chunk chunk) {
     xfbin_unpacker->index_json["Pages"][index][chunk.index] = chunk.json;
 
     // Create a file for each chunk.
-    chunk.filename = std::format("{:03} {} - {}", chunk.index, chunk.data.type_string().substr(9), chunk.data.name());
+    chunk.filename = std::format("{:03} - {}", chunk.index, chunk.data.type_string().substr(9), chunk.data.name());
     switch (chunk.data.type()) {
         case nucc::chunk_type::null:
             Handle_Chunk_Null(chunk);
