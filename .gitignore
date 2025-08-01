@@ -2,3 +2,7 @@
 build/
 cmake-build-debug/
 cmake-build-release/
+build.ninja
+CMakeCache.txt
+cmake_install.cmake
+CMakeFiles
