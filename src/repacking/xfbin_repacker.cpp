@@ -1,45 +1,64 @@
 #include "repacker.hpp"
 
-#include "logger.hpp"
-#include "config.hpp"
-
-void repack_xfbin(const std::filesystem::path& xfbin_path) {
-    nucc::xfbin xfbin;
-
+XFBIN_Repacker::XFBIN_Repacker(const std::filesystem::path& _xfbin_path) {
+    xfbin_path = _xfbin_path;
     xfbin.filename = xfbin_path.filename().string();
+}
 
-    if (!std::filesystem::exists(xfbin_path / "_index.json")) {
-        logger.send(Logger::Level::FATAL, "{} could not be found in directory {}.", logger.file("_index.json"), logger.file(xfbin.filename));
-        logger.send(Logger::Level::INFO, "Ensure the directory was unpacked with this very tool. Others are incompatible.");
+void XFBIN_Repacker::Repack() {
+    Read_Index_JSON();
+
+    Get_Game();
+
+    Read_Pages();
+
+    Write_XFBIN();
+}
+
+void XFBIN_Repacker::Read_Index_JSON() {
+    std::filesystem::path index_path = xfbin_path / "_index.json";
+    if (!std::filesystem::exists(index_path)) {
+        log.fatal(
+            kojo::logger::status::null_file,
+            std::format("Could not find index data in directory \"{}\".", xfbin.filename),
+            "Ensure the directory contains an \"index.json\" file and that it was unpacked with this same tool."
+        );
         return;
     }
-    std::ifstream index_file(xfbin_path / "_index.json");
+
+    std::ifstream index_file(index_path);
     nlohmann::json index_json = nlohmann::json::parse(index_file);
     index_file.close();
+}
+
+void XFBIN_Repacker::Get_Game() {
     xfbin.game = nucc::string_to_game(index_json["Game"]);
-    if (xfbin.game != nucc::Game::UNKNOWN)
-        logger.send(Logger::Level::INFO, "Game detected: {}.", nucc::game_to_string(xfbin.game));
 
-    config.game = xfbin.game;
-    config.load("settings.json");
-
-    if (config.game == nucc::Game::UNKNOWN) {
-        logger.send(Logger::Level::INFO, "Repacking {} for no particular game...", logger.file(xfbin.filename));
+    if (xfbin.game != nucc::game::unknown) {
+        log.info(std::format("Game detected: {}",  xfbin.game));
+        config.game = xfbin.game;
     } else {
-        logger.send(Logger::Level::INFO, "Repacking {} for {}...", logger.file(xfbin.filename), nucc::game_to_string(xfbin.game));
-    }
-
-    for (const auto& directory : std::filesystem::directory_iterator(xfbin_path)) {
-        if (!directory.is_directory()) continue;
-
-        if (!std::filesystem::exists(directory.path() / "_page.json")) {
-            logger.send(Logger::Level::FATAL, "{} could not be found in directory {}.", logger.file("_page.json"), logger.file(directory.path().filename().string()));
+        config.load("settings.json");
+        xfbin.game = config.game;
+        if (config.game == nucc::game::unknown) {
+            log.info(std::format("Repacking \"{}\" for no particular game...", xfbin.filename));
             return;
         }
-        std::ifstream page_file(directory.path() / "_page.json");
-        nlohmann::json page_json = nlohmann::json::parse(page_file);
-        page_file.close();
+    }
+    log.info(std::format("Repacking \"{}\" for {}", xfbin.filename, nucc::game_to_string(xfbin.game)));
+}
 
+void XFBIN_Repacker::Read_Pages() {
+    for (auto& directory : std::filesystem::directory_iterator(xfbin_path) {
+        if (!directory.is_directory()) continue;
+
+        Page page{directory.path()};
+        page.Repack();
+    }
+}
+
+void repack_xfbin(const std::filesystem::path& xfbin_path) {
+    for (const auto& directory : std::filesystem::directory_iterator(xfbin_path)) {
         auto page = xfbin.create_page();
 
         for (const auto& file : std::filesystem::directory_iterator(directory)) {

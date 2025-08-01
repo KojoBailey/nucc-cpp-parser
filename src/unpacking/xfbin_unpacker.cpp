@@ -70,14 +70,13 @@ void XFBIN_Unpacker::Write_Index_JSON() {
 void XFBIN_Unpacker::Create_Page_Directories() {
     size_t page_count = 0;
     for (const nucc::page& page_data : xfbin.pages()) {
-        XFBIN_Unpacker::Page page(this, page_data, page_count);
+        Page page(this, page_data, page_count);
         Process_Page(page);
         page_count++;
     }
 }
 
 void XFBIN_Unpacker::Process_Page(Page page) {
-
     page.Write_Global_JSON();
 
     page.Create_Directory();
