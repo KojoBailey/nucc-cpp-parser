@@ -1,3 +1,4 @@
 [submodule "src/external/cc2_binary_data"]
 	path = src/external/cc2_binary_data
 	url = https://github.com/KojoBailey/cc2-binary-data
+	branch = master

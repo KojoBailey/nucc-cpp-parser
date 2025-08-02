@@ -1,9 +1,14 @@
-.vscode/
+# Build
 build/
 cmake-build-debug/
 cmake-build-release/
 build.ninja
+
+# IDE
+.vscode/
+/.idea/
+
+# CMake
 CMakeCache.txt
 cmake_install.cmake
 CMakeFiles
-/.idea/
