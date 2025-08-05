@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../config.hpp"
 
 #include <nucc/xfbin.hpp>
@@ -19,22 +21,24 @@ public:
         nlohmann::ordered_json json;
 
         struct Chunk {
-            const nucc::chunk& data;
-            size_t index;
-            nlohmann::ordered_json json;
+            kojo::logger log{"Chunk Repacker", true, true};
+
+            nucc::chunk data;
+            std::filesystem::path directory;
+            std::string index;
+            nlohmann::json json;
             std::string filename;
-            std::string filename_fmt;
 
-            Chunk(const nucc::chunk& _data, size_t _index)
-            : data(_data), index(_index) {}
-
-            void Write_JSON();
+            void Handle_Chunk_Binary();
         };
 
-        Page(std::filesystem::path& _path) : path(_path) {}
+        Page(const std::filesystem::path& _path) : path(_path) {}
 
         void Repack();
         void Read_JSON();
+        void Create_Chunks();
+
+        void Handle_Chunk_Binary(nucc::chunk&);
     };
 
     explicit XFBIN_Repacker(const std::filesystem::path& _xfbin_path);

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../config.hpp"
 
 #include <nucc/xfbin.hpp>
@@ -40,7 +42,7 @@ public:
         void Create_Directory();
         void Process_Chunks();
         void Process_Chunk(Chunk chunk);
-        void Write_File();
+        void Write_File() const;
 
         template<typename T>
         void Parse_Data(Chunk& chunk) {
@@ -50,11 +52,10 @@ public:
             output << json_output.dump(config.json_spacing);
         }
 
-        void Handle_Chunk_Null(Chunk& chunk);
+        void Handle_Chunk_Null(Chunk& chunk) const;
         void Handle_Chunk_Binary(Chunk& chunk);
 
         bool Handle_ASBR(Chunk& chunk);
-        void Dump_Binary(Chunk& chunk);
     };
 
     explicit XFBIN_Unpacker(const std::filesystem::path& _xfbin_path);

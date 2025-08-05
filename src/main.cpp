@@ -55,7 +55,8 @@ int main(int argc, char* argv[]) {
         XFBIN_Unpacker unpacker{xfbin_path};
         unpacker.Unpack();
     } else if (std::filesystem::is_directory(xfbin_path)) {
-        // repack_xfbin(xfbin_path);
+        XFBIN_Repacker repacker{xfbin_path};
+        repacker.Repack();
     } else {    
         log.fatal(
             kojo::logger::status::bad_value,

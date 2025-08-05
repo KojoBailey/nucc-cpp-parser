@@ -6,13 +6,17 @@ XFBIN_Repacker::XFBIN_Repacker(const std::filesystem::path& _xfbin_path) {
 }
 
 void XFBIN_Repacker::Repack() {
+    log.verbose("Reading index JSON...");
     Read_Index_JSON();
 
+    log.verbose("Getting game information...");
     Get_Game();
 
+    log.verbose("Reading pages...");
     Read_Pages();
 
-    Write_XFBIN();
+    log.verbose("Writing XFBIN...");
+    // Write_XFBIN();
 }
 
 void XFBIN_Repacker::Read_Index_JSON() {
@@ -27,7 +31,7 @@ void XFBIN_Repacker::Read_Index_JSON() {
     }
 
     std::ifstream index_file(index_path);
-    nlohmann::json index_json = nlohmann::json::parse(index_file);
+    index_json = nlohmann::json::parse(index_file);
     index_file.close();
 }
 
@@ -35,7 +39,7 @@ void XFBIN_Repacker::Get_Game() {
     xfbin.game = nucc::string_to_game(index_json["Game"]);
 
     if (xfbin.game != nucc::game::unknown) {
-        log.info(std::format("Game detected: {}",  xfbin.game));
+        log.info(std::format("Game detected: {}",  xfbin.game_as_string()));
         config.game = xfbin.game;
     } else {
         config.load("settings.json");
@@ -49,7 +53,7 @@ void XFBIN_Repacker::Get_Game() {
 }
 
 void XFBIN_Repacker::Read_Pages() {
-    for (auto& directory : std::filesystem::directory_iterator(xfbin_path) {
+    for (auto& directory : std::filesystem::directory_iterator(xfbin_path)) {
         if (!directory.is_directory()) continue;
 
         Page page{directory.path()};
@@ -57,37 +61,37 @@ void XFBIN_Repacker::Read_Pages() {
     }
 }
 
-void repack_xfbin(const std::filesystem::path& xfbin_path) {
-    for (const auto& directory : std::filesystem::directory_iterator(xfbin_path)) {
-        auto page = xfbin.create_page();
-
-        for (const auto& file : std::filesystem::directory_iterator(directory)) {
-            std::string filename = file.path().filename().string();
-            if (filename == "_page.json") continue;
-
-            if (std::regex_match(filename, std::regex(R"(\d{3} Null)"))) {
-                logger.send(Logger::Level::VERBOSE, "File found with type nuccChunkNull.");
-                page->create_chunk(nucc::ChunkType::Null);
-                continue;
-            }
-
-            std::regex regex(R"(\d{3}\s(.+?)\s-\s(.+))");
-            std::smatch matches;
-            std::regex_search(filename, matches, regex);
-            auto chunk = page->create_chunk(nucc::string_to_chunk_type("nuccChunk" + matches[1].str()), "", logger.file(matches[2].str()));
-            logger.send(Logger::Level::VERBOSE, "File {} found with type {}.", chunk->name, chunk->type_as_string());
-
-            nucc::ASBR::messageInfo messageInfo;
-            std::ifstream messageInfo_file(file.path());
-            nlohmann::ordered_json messageInfo_json = nlohmann::ordered_json::parse(messageInfo_file);
-            messageInfo.load(messageInfo_json);
-            nucc::Binary binary_chunk;
-            binary_chunk.load_data(messageInfo);
-            binary_chunk.name = "messageInfo";
-            binary_chunk.path = "WIN64/eng/230/messageInfo.bin";
-            chunk->load(&binary_chunk);
-        }
-    }
-
-    xfbin.write("test_output.xfbin");
-}
+// void repack_xfbin(const std::filesystem::path& xfbin_path) {
+//     for (const auto& directory : std::filesystem::directory_iterator(xfbin_path)) {
+//         auto page = xfbin.create_page();
+//
+//         for (const auto& file : std::filesystem::directory_iterator(directory)) {
+//             std::string filename = file.path().filename().string();
+//             if (filename == "_page.json") continue;
+//
+//             if (std::regex_match(filename, std::regex(R"(\d{3} Null)"))) {
+//                 logger.send(Logger::Level::VERBOSE, "File found with type nuccChunkNull.");
+//                 page->create_chunk(nucc::ChunkType::Null);
+//                 continue;
+//             }
+//
+//             std::regex regex(R"(\d{3}\s(.+?)\s-\s(.+))");
+//             std::smatch matches;
+//             std::regex_search(filename, matches, regex);
+//             auto chunk = page->create_chunk(nucc::string_to_chunk_type("nuccChunk" + matches[1].str()), "", logger.file(matches[2].str()));
+//             logger.send(Logger::Level::VERBOSE, "File {} found with type {}.", chunk->name, chunk->type_as_string());
+//
+//             nucc::ASBR::messageInfo messageInfo;
+//             std::ifstream messageInfo_file(file.path());
+//             nlohmann::ordered_json messageInfo_json = nlohmann::ordered_json::parse(messageInfo_file);
+//             messageInfo.load(messageInfo_json);
+//             nucc::Binary binary_chunk;
+//             binary_chunk.load_data(messageInfo);
+//             binary_chunk.name = "messageInfo";
+//             binary_chunk.path = "WIN64/eng/230/messageInfo.bin";
+//             chunk->load(&binary_chunk);
+//         }
+//     }
+//
+//     xfbin.write("test_output.xfbin");
+// }

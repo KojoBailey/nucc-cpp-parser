@@ -35,12 +35,12 @@ void XFBIN_Unpacker::Page::Process_Chunks() {
     }
 }
 
-void XFBIN_Unpacker::Page::Write_File() {
+void XFBIN_Unpacker::Page::Write_File() const {
     std::ofstream file(path / "_page.json");
     file << json.dump(config.json_spacing);
 }
 
-void XFBIN_Unpacker::Page::Handle_Chunk_Null(Chunk& chunk) {
+void XFBIN_Unpacker::Page::Handle_Chunk_Null(Chunk& chunk) const {
     std::ofstream output(path / std::format("{:03} Null", chunk.index));
 }
 
@@ -67,11 +67,12 @@ bool XFBIN_Unpacker::Page::Handle_ASBR(Chunk& chunk) {
 
 void XFBIN_Unpacker::Page::Process_Chunk(Chunk chunk) {
     chunk.Write_JSON();
-    json["Chunks"][chunk.index] = chunk.json;
-    xfbin_unpacker->index_json["Pages"][index][chunk.index] = chunk.json;
+    std::string chunk_index_str = std::format("{:03}", chunk.index);
+    json["Chunks"][chunk_index_str] = chunk.json;
+    xfbin_unpacker->index_json["Pages"][index][chunk_index_str] = chunk.json;
 
     // Create a file for each chunk.
-    chunk.filename = std::format("{:03} - {}", chunk.index, chunk.data.name());
+    chunk.filename = std::format("{} - {}", chunk_index_str, chunk.data.name());
     switch (chunk.data.type()) {
         case nucc::chunk_type::null:
             Handle_Chunk_Null(chunk);
